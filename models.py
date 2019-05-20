@@ -110,25 +110,26 @@ class Ledger(db.Model):
     details_choices = {
         ("debit_card_purchase", "debit_card_purchase"),
         ("direct_deposit", "direct_deposit"),
-        ("account_transfer", "account_transfer"),
-        ("cashed_check", "cashed_check")
+        ("transfer_in", "transfer_in"),
+        ("cashed_check", "cashed_check"),
+        ("transfer_away", "transfer_away"),
+        ("cash_deposit", "cash_deposit")
     }
 
     id = db.Column(db.Integer, primary_key=True)
     account_id = db.Column(db.Integer, db.ForeignKey("Accounts.id"))
     account = db.relationship("Accounts")
     transaction_type = db.Column(ChoiceType(transaction_type_choices))
-    ammount = db.Column(db.Float())
+    amount = db.Column(db.Float())
     details = db.Column(ChoiceType(details_choices))
     created_at = db.Column(db.DateTime, default=datetime.now())
 
-    def __init__(self, account_id, account, transaction_type, ammount, details, created_at):
+    def __init__(self, account_id, account, transaction_type, amount, details):
         self.account_id = account_id
         self.account = account
         self.transaction_type = transaction_type
-        self.ammount = ammount
+        self.amount = amount
         self.details = details
-        self.created_at = created_at
 
     def __repr__(self):
         return '<id {}>'.format(self.id)
@@ -137,9 +138,8 @@ class Ledger(db.Model):
         return {
             'id': self.id,
             'account_id': self.account_id,
-            'account': self.account,
             'transaction_type': self.transaction_type.value,
-            'ammount': self.ammount,
-            'details': self.status.details.value,
+            'amount': self.amount,
+            'details': self.details.value,
             'created_at': self.created_at,
         }

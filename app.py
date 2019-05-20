@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_restful import Resource, Api
+from sqlalchemy import or_
 
 app = Flask(__name__)
 api = Api(app)
@@ -9,7 +10,7 @@ app.config.from_object("config.ProductionConfig")
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
-from models import Customers, Accounts
+from models import Customers, Accounts, Ledger
 
 
 @app.route("/")
@@ -80,10 +81,9 @@ class CustomersController(Resource):
 class AccountsIndexController(Resource):
     def get(self, customer_id):
         try:
-            customer = Customers.query.filter_by(id=customer_id).first()
-            accounts = Accounts.query.filter_by(customer_id=1).all()
+            accounts = db.session.query(Customers, Accounts).outerjoin(Accounts).filter(Accounts.customer_id == Customers.id).all()
 
-            return jsonify([account.serialize() for account in accounts])
+            return jsonify([account[1].serialize() for account in accounts])
 
         except Exception as e:
             return(str(e))
@@ -115,8 +115,8 @@ class AccountsIndexController(Resource):
 class AccountsController(Resource):
     def get(self, customer_id, account_id):
         try:
-            customer = Customers.query.filter_by(id=customer_id).first()
-            account = Accounts.query.filter_by(customer_id=1, id=account_id).first()
+
+            account = db.session.query(Customers, Accounts).outerjoin(Accounts).filter(Accounts.customer_id == Customers.id, Accounts.id == account_id).all()[0][1]
 
             return jsonify(account.serialize())
 
@@ -144,6 +144,77 @@ class AccountsController(Resource):
             return(str(e))
 
 
+class LedgerController(Resource):
+    def get(self, customer_id, account_id):
+        try:
+
+            # account = Accounts.query.filter_by(customer_id=1, id=7).first()
+
+            # ledger = Ledger(
+            #     account_id=account.id,
+            #     account=account,
+            #     transaction_type="debit",
+            #     amount=50.50,
+            #     details="cashed_check",
+            # )
+            # db.session.add(ledger)
+            # db.session.commit()
+
+
+            ledger = db.session.query(Customers, Accounts, Ledger).outerjoin(Ledger).filter(Accounts.customer_id == Customers.id).filter(Ledger.account_id == account_id).all()
+            print ledger
+            return jsonify([l[2].serialize() for l in ledger])
+
+        except Exception as e:
+            return(str(e))
+
+
+class TransferController(Resource):
+    def post(self, customer_id):
+        try:
+            print request.values
+            to_account_id = request.values['to_account_id']
+            from_account_id = request.values['from_account_id']
+            amount = request.values['amount']
+            print 'HIIIIIIIIIIII'
+
+            to_account = db.session.query(Customers, Accounts).outerjoin(Accounts).filter(Accounts.customer_id == Customers.id, Accounts.id == to_account_id).all()[0][1]
+            from_account = db.session.query(Customers, Accounts).outerjoin(Accounts).filter(Accounts.customer_id == Customers.id, Accounts.id == from_account_id).all()[0][1]
+            print 'YO'
+            print to_account
+            print from_account
+
+            ledger_credit = Ledger(
+                account_id=to_account_id,
+                account=to_account,
+                transaction_type="credit",
+                amount=amount,
+                details="transfer_in",
+            )
+            db.session.add(ledger_credit)
+            db.session.commit()
+
+            ledger_debit = Ledger(
+                account_id=from_account_id,
+                account=from_account,
+                transaction_type="debit",
+                amount=amount,
+                details="transfer_away",
+            )
+            db.session.add(ledger_debit)
+
+            db.session.commit()
+
+            return_json = {
+                "to_account": to_account_id,
+                "from_account": from_account_id,
+                "amount": amount
+            }
+
+            return jsonify(return_json)
+
+        except Exception as e:
+            return(str(e))
 
 
 api.add_resource(CustomersIndexController, '/customers')
@@ -151,6 +222,7 @@ api.add_resource(CustomersController, '/customers/<string:customer_id>')
 api.add_resource(AccountsIndexController, '/customers/<string:customer_id>/accounts')
 api.add_resource(AccountsController, '/customers/<string:customer_id>/accounts/<string:account_id>')
 api.add_resource(LedgerController, '/customers/<string:customer_id>/accounts/<string:account_id>/ledger')
+api.add_resource(TransferController, '/customers/<string:customer_id>/transfer')
 
 
 if __name__ == '__main__':

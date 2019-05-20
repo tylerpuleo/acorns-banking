@@ -92,7 +92,6 @@ class AccountsIndexController(Resource):
         customer = Customers.query.filter_by(id=customer_id).first()
         print customer
         try:
-            print request.values['account_type']
             account = Accounts(
                 customer=customer,
                 customer_id=customer.id,
@@ -125,9 +124,7 @@ class AccountsController(Resource):
 
     def put(self, customer_id, account_id):
         try:
-            customer = Customers.query.filter_by(id=customer_id).first()
-            account = Accounts.query.filter_by(customer_id=1, id=account_id).first()
-            print request.values
+            account = Accounts.query.filter_by(customer_id=customer_id, id=account_id).first()
 
             account.account_type = request.values['account_type'] if "account_type" in request.values else account.account_type
             account.balance = request.values['balance'] if "balance" in request.values else account.balance
@@ -147,22 +144,7 @@ class AccountsController(Resource):
 class LedgerController(Resource):
     def get(self, customer_id, account_id):
         try:
-
-            # account = Accounts.query.filter_by(customer_id=1, id=7).first()
-
-            # ledger = Ledger(
-            #     account_id=account.id,
-            #     account=account,
-            #     transaction_type="debit",
-            #     amount=50.50,
-            #     details="cashed_check",
-            # )
-            # db.session.add(ledger)
-            # db.session.commit()
-
-
             ledger = db.session.query(Customers, Accounts, Ledger).outerjoin(Ledger).filter(Accounts.customer_id == Customers.id).filter(Ledger.account_id == account_id).all()
-            print ledger
             return jsonify([l[2].serialize() for l in ledger])
 
         except Exception as e:
@@ -172,17 +154,12 @@ class LedgerController(Resource):
 class TransferController(Resource):
     def post(self, customer_id):
         try:
-            print request.values
             to_account_id = request.values['to_account_id']
             from_account_id = request.values['from_account_id']
             amount = request.values['amount']
-            print 'HIIIIIIIIIIII'
 
             to_account = db.session.query(Customers, Accounts).outerjoin(Accounts).filter(Accounts.customer_id == Customers.id, Accounts.id == to_account_id).all()[0][1]
             from_account = db.session.query(Customers, Accounts).outerjoin(Accounts).filter(Accounts.customer_id == Customers.id, Accounts.id == from_account_id).all()[0][1]
-            print 'YO'
-            print to_account
-            print from_account
 
             ledger_credit = Ledger(
                 account_id=to_account_id,

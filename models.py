@@ -3,8 +3,8 @@ from datetime import datetime
 from sqlalchemy_utils import ChoiceType, EncryptedType
 from sqlalchemy_utils.types.encrypted.encrypted_type import AesEngine
 
-
 secret_key = "F21998729FE5D4BCCE8A4FAADE659"
+
 
 class Customers(db.Model):
     __tablename__ = "Customers"

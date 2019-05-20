@@ -16,46 +16,6 @@ from models import Customers, Accounts
 def hello():
     return "Welcome to Tyler's Banking API"
 
-# @app.route("/customers", methods=['POST', 'GET'])
-# def customer():
-#     name = request.args.get('name')
-#     author = request.args.get('author')
-#     published = request.args.get('published')
-#     try:
-#         customer = Customers(
-#             name=name,
-#             author=author,
-#             published=published
-#         )
-#         db.session.add(customer)
-#         db.session.commit()
-#         return "Book added. book id={}".format(customer.id)
-#     except Exception as e:
-#         return(str(e))
-
-
-@app.route("/getall")
-def get_all():
-    try:
-        customer = Customers.query.all()
-
-        return jsonify([a_customer.serialize() for a_customer in customer])
-
-    except Exception as e:
-        return(str(e))
-
-
-@app.route("/get/<id_>")
-def get_by_id(id_):
-    try:
-        customer = Customers.query.filter_by(id=id_).first()
-        return jsonify(customer.serialize())
-    except Exception as e:
-        return(str(e))
-
-
-
-
 
 class CustomersIndexController(Resource):
     def get(self):
@@ -90,17 +50,17 @@ class CustomersIndexController(Resource):
 
 
 class CustomersController(Resource):
-    def get(self, _id):
+    def get(self, customer_id):
         try:
-            customer = Customers.query.filter_by(id=_id).first()
+            customer = Customers.query.filter_by(id=customer_id).first()
             return jsonify(customer.serialize())
 
         except Exception as e:
             return(str(e))
 
-    def put(self, _id):
+    def put(self, customer_id):
         try:
-            customer = Customers.query.filter_by(id=_id).first()
+            customer = Customers.query.filter_by(id=customer_id).first()
 
             customer.first_name = request.values['first_name'] if "first_name" in request.values else customer.first_name
             customer.last_name = request.values['last_name'] if "last_name" in request.values else customer.last_name
@@ -118,18 +78,18 @@ class CustomersController(Resource):
 
 
 class AccountsIndexController(Resource):
-    def get(self, _id):
+    def get(self, customer_id):
         try:
-            customer = Customers.query.filter_by(id=_id).first()
-            accounts = Accounts.query.filter_by(customer=customer)
+            customer = Customers.query.filter_by(id=customer_id).first()
+            accounts = Accounts.query.filter_by(customer_id=1).all()
 
             return jsonify([account.serialize() for account in accounts])
 
         except Exception as e:
             return(str(e))
 
-    def post(self, _id):
-        customer = Customers.query.filter_by(id=_id).first()
+    def post(self, customer_id):
+        customer = Customers.query.filter_by(id=customer_id).first()
         print customer
         try:
             print request.values['account_type']
@@ -143,7 +103,6 @@ class AccountsIndexController(Resource):
                 status=request.values['status'],
                 active=bool(request.values['active'])
             )
-            print "YO"
             db.session.add(account)
             db.session.commit()
 
@@ -152,9 +111,47 @@ class AccountsIndexController(Resource):
         except Exception as e:
             return(str(e))
 
+
+class AccountsController(Resource):
+    def get(self, customer_id, account_id):
+        try:
+            customer = Customers.query.filter_by(id=customer_id).first()
+            account = Accounts.query.filter_by(customer_id=1, id=account_id).first()
+
+            return jsonify(account.serialize())
+
+        except Exception as e:
+            return(str(e))
+
+    def put(self, customer_id, account_id):
+        try:
+            customer = Customers.query.filter_by(id=customer_id).first()
+            account = Accounts.query.filter_by(customer_id=1, id=account_id).first()
+            print request.values
+
+            account.account_type = request.values['account_type'] if "account_type" in request.values else account.account_type
+            account.balance = request.values['balance'] if "balance" in request.values else account.balance
+            account.account_number = request.values['account_number'] if "account_number" in request.values else account.account_number
+            account.routing_number = request.values['routing_number'] if "routing_number" in request.values else account.routing_number
+            account.status = request.values['status'] if "status" in request.values else account.status
+            account.active = bool(request.values['active']) if "active" in request.values else account.active
+
+            db.session.commit()
+
+            return jsonify(account.serialize())
+
+        except Exception as e:
+            return(str(e))
+
+
+
+
 api.add_resource(CustomersIndexController, '/customers')
-api.add_resource(CustomersController, '/customers/<string:_id>')
-api.add_resource(AccountsIndexController, '/customers/<string:_id>/accounts')
+api.add_resource(CustomersController, '/customers/<string:customer_id>')
+api.add_resource(AccountsIndexController, '/customers/<string:customer_id>/accounts')
+api.add_resource(AccountsController, '/customers/<string:customer_id>/accounts/<string:account_id>')
+api.add_resource(LedgerController, '/customers/<string:customer_id>/accounts/<string:account_id>/ledger')
+
 
 if __name__ == '__main__':
     app.run()

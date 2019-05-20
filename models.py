@@ -41,6 +41,7 @@ class Customers(db.Model):
             'created_at': self.created_at
         }
 
+
 class Accounts(db.Model):
     __tablename__ = "Accounts"
 
@@ -75,11 +76,11 @@ class Accounts(db.Model):
     def __init__(self, customer, customer_id, account_type, balance, account_number, routing_number, status, active):
         self.customer_id = customer_id
         self.customer = customer
-        self.account_type = account_type[0]
+        self.account_type = account_type
         self.balance = balance
         self.account_number = account_number
         self.routing_number = routing_number
-        self.status = status[0]
+        self.status = status
         self.active = active
 
     def __repr__(self):
@@ -88,11 +89,57 @@ class Accounts(db.Model):
     def serialize(self):
         return {
             'id': self.id,
-            'account_type': self.account_type,
+            'account_type': self.account_type.value,
             'balance': self.balance,
             'account_number': self.account_number,
             'routing_number': self.routing_number,
-            'status': self.status,
+            'status': self.status.value,
             'active': self.active,
             'created_at': self.created_at
+        }
+
+
+class Ledger(db.Model):
+    __tablename__ = "Ledger"
+
+    transaction_type_choices = {
+        ("debit", "debit"),
+        ("credit", "credit")
+    }
+
+    details_choices = {
+        ("debit_card_purchase", "debit_card_purchase"),
+        ("direct_deposit", "direct_deposit"),
+        ("account_transfer", "account_transfer"),
+        ("cashed_check", "cashed_check")
+    }
+
+    id = db.Column(db.Integer, primary_key=True)
+    account_id = db.Column(db.Integer, db.ForeignKey("Accounts.id"))
+    account = db.relationship("Accounts")
+    transaction_type = db.Column(ChoiceType(transaction_type_choices))
+    ammount = db.Column(db.Float())
+    details = db.Column(ChoiceType(details_choices))
+    created_at = db.Column(db.DateTime, default=datetime.now())
+
+    def __init__(self, account_id, account, transaction_type, ammount, details, created_at):
+        self.account_id = account_id
+        self.account = account
+        self.transaction_type = transaction_type
+        self.ammount = ammount
+        self.details = details
+        self.created_at = created_at
+
+    def __repr__(self):
+        return '<id {}>'.format(self.id)
+
+    def serialize(self):
+        return {
+            'id': self.id,
+            'account_id': self.account_id,
+            'account': self.account,
+            'transaction_type': self.transaction_type.value,
+            'ammount': self.ammount,
+            'details': self.status.details.value,
+            'created_at': self.created_at,
         }

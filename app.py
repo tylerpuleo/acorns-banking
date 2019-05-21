@@ -448,7 +448,6 @@ api.add_resource(AccountsController, '/customers/<string:customer_id>/accounts/<
 api.add_resource(LedgerController, '/customers/<string:customer_id>/accounts/<string:account_id>/ledger')
 api.add_resource(TransferController, '/customers/<string:customer_id>/transfer')
 
-
 # Main app loop
 if __name__ == '__main__':
     app.run()

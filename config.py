@@ -1,3 +1,12 @@
+"""
+Author: Tyler Puleo
+License: GPL
+Version: 0.0.1
+Maintainer: Tyler Puleo
+Status: Production
+Summary: This is the configuration file for flask.
+"""
+
 import os
 
 basedir = os.path.abspath(os.path.dirname(__file__))

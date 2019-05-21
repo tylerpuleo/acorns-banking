@@ -1,3 +1,12 @@
+"""
+Author: Tyler Puleo
+License: GPL
+Version: 0.0.1
+Maintainer: Tyler Puleo
+Status: Production
+Summary: This is the models file where all database models are defined.
+"""
+
 from app import db
 from datetime import datetime
 from sqlalchemy_utils import ChoiceType, EncryptedType

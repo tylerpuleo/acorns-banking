@@ -38,8 +38,8 @@ transfer = {
     "amount": 9.99
 }
 
-# response = requests.post('http://127.0.0.1:5000/customers', data=customer, verify=False)
-# response = requests.post('http://127.0.0.1:5000/customers/1/accounts', data=account, verify=False)
+response = requests.post('http://127.0.0.1:5000/customers', data=customer, verify=False)
+response = requests.post('http://127.0.0.1:5000/customers/1/accounts', data=account, verify=False)
 response = requests.post('http://127.0.0.1:5000/customers/1/transfer', data=transfer, verify=False)
 
 print response

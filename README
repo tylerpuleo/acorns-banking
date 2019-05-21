@@ -1,4 +1,4 @@
-********** Technical Stack Used **********
+*Technical Stack Used*
 Flask (micro python web framework), PostgreSQL, SQLAlchemy (Flask ORM for SQL Databases)
 
 ********** Database Explination **********

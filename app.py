@@ -392,7 +392,7 @@ class TransferController(Resource):
             to_account = Accounts.query.filter_by(customer_id=customer_id, id=int(to_account_id)).first()
 
             if not from_account.status == "opened" or not from_account.active \
-                or not to_account.status == "opened" or not to_account.active:
+                    or not to_account.status == "opened" or not to_account.active:
 
                 return {"error": "Both to and from accounts must be open"}, status.HTTP_400_BAD_REQUEST
 
